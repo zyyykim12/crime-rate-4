@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Navigation Buttons</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Map container */
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 80px;
+            width: 100%;
+        }
+        
+        .top-left-button {
+            position: absolute;
+            top: 70px;
+            left: 80px;
+            z-index: 1000;
+        }
+        
+        .top-left-button button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            background-color: rgb(0, 0, 0);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        .top-left-button img {
+            width: 30px;
+            height: 30px;
+            transition: transform 0.2s;
+            filter: invert(1);
+        }
+        
+        .top-left-button img:hover {
+            transform: scale(1.1);
+        }
+
+        /* Search Panel */
+        .search-panel {
+            position: absolute;
+            top: 130px;
+            left: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 300px;
+            display: none;
+        }
+        
+        .search-panel input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .search-panel .search-button {
+            background-color: #000;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .search-options {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        .search-options button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .crime-rate-btn {
+            background-color: #d9534f;
+            color: white;
+            margin-right: 5px;
+        }
+        
+        .crime-rate-btn:hover {
+            background-color: #c9302c;
+        }
+        
+        .flood-btn {
+            background-color: #5bc0de;
+            color: white;
+            margin-left: 5px;
+        }
+        
+        .flood-btn:hover {
+            background-color: #31b0d5;
+        }
+        
+        /* Flood Panel */
+        .flood-panel {
+            position: absolute;
+            top: 130px;
+            left: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 300px;
+            max-height: 70vh;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .flood-panel h3 {
+            margin-top: 0;
+            color: #5bc0de;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .flood-category {
+            margin-bottom: 15px;
+        }
+        
+        .flood-category h4 {
+            margin: 15px 0 10px 0;
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+        
+        .flood-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .flood-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .flood-list li:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .flood-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .close-flood-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        /* Risk Dot Styles */
+        .risk-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .high-risk {
+            background-color: #d9534f; /* Red */
+        }
+        
+        .medium-risk {
+            background-color: #f0ad4e; /* Orange */
+        }
+        
+        .low-risk {
+            background-color: #5cb85c; /* Green */
+        }
+        
+        /* Settings Menu */
+        .settings-menu {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 200px;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .settings-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            text-align: left;
+            background: none;
+            border: none;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .settings-menu button:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .settings-menu button:last-child {
+            border-bottom: none;
+        }
+        
+        /* Emergency Contact Panel */
+        .emergency-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 280px;
+            display: none;
+            text-align: center;
+        }
+        
+        .emergency-panel h3 {
+            margin-top: 0;
+            color: #d9534f;
+        }
+        
+        .emergency-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 15px 0;
+            color: #333;
+        }
+        
+        .emergency-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .emergency-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .call-now {
+            background-color: #d9534f;
+            color: white;
+        }
+        
+        .call-now:hover {
+            background-color: #c9302c;
+        }
+        
+        .cancel-emergency {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .cancel-emergency:hover {
+            background-color: #e0e0e0;
+        }
+        
+        /* Bottom navigation */
+        .div-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255,255,255,0.9);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            padding: 0;
+            z-index: 1000;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .div-nav button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            height: 100%;
+            transition: all 0.2s;
+        }
+        
+        .div-nav button:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+        
+        /* ABE Button - Larger */
+        .abe-button {
+            flex: 2;
+        }
+        
+        .abe-button img {
+            height: 60px;
+            width: auto;
+            max-width: 100%;
+        }
+        
+        /* Emergency Button - Smaller but prominent */
+        .emergency-button {
+            flex: 1;
+        }
+        
+        .emergency-button img {
+            height: 50px;
+            width: auto;
+            max-width: 80%;
+        }
+        
+        /* Settings Button - Larger */
+        .settings-button {
+            flex: 2;
+            position: relative;
+        }
+        
+        .settings-button img {
+            height: 60px;
+            width: auto;
+            max-width: 100%;
+        }
+        
+        /* Borders between buttons */
+        .div-nav button:not(:last-child) {
+            border-right: 1px solid #ddd;
+        }
+
+        /* Legend */
+        .info.legend {
+            padding: 6px 8px;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            line-height: 18px;
+            color: #555;
+        }
+        
+        .info.legend h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+        
+        .info.legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        /* Account Security Panel Styles */
+        .account-security-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 300px;
+            display: none;
+        }
+        
+        .account-security-panel h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .user-info {
+            margin: 15px 0;
+        }
+        
+        .user-info div {
+            margin-bottom: 10px;
+        }
+        
+        .user-info label {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+        
+        .change-password {
+            margin-top: 20px;
+        }
+        
+        .change-password h4 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .change-password input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .account-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .account-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .save-password {
+            background-color: #5cb85c;
+            color: white;
+        }
+        
+        .save-password:hover {
+            background-color: #4cae4c;
+        }
+        
+        .close-account {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        
+        .close-account:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+    <!-- Leaflet CSS (OpenStreetMap) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+</head>
+<body>
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Search Button -->
+    <div class="top-left-button">
+        <button type="button" id="searchButton" aria-label="Search button">
+            <img class="search-icon" src="1.webp" id="searchIcon">
+        </button>
+    </div>
+
+    <!-- Search Panel -->
+    <div class="search-panel" id="searchPanel">
+        <input type="text" id="currentLocation" placeholder="Enter your location">
+        <input type="text" id="destination" placeholder="Enter your destination">
+        <button class="search-button" id="searchSubmit">Search Route</button>
+        
+        <div class="search-options">
+            <button class="crime-rate-btn" id="crimeRateBtn">Crime Rate</button>
+            <button class="flood-btn" id="floodBtn">Flood</button>
+        </div>
+    </div>
+
+    <!-- Flood Panel -->
+    <div class="flood-panel" id="floodPanel">
+        <button class="close-flood-panel" id="closeFloodPanel">×</button>
+        <h3>Flood-Prone Streets</h3>
+        
+        <div class="flood-category high">
+            <h4><span class="risk-dot high-risk"></span>High Flood Risk</h4>
+            <ul class="flood-list">
+                <li data-street="3 Marias">3 Marias</li>
+                <li data-street="Alcantara">Alcantara</li>
+                <li data-street="Alegria">Alegria</li>
+                <li data-street="Alex">Alex</li>
+                <li data-street="Algeciras">Algeciras</li>
+                <li data-street="Altura Ext.">Altura Ext.</li>
+                <li data-street="Aly 1">Aly 1</li>
+                <li data-street="Aly 2">Aly 2</li>
+                <li data-street="Aly 3">Aly 3</li>
+                <li data-street="Ansures">Ansures</li>
+                <li data-street="Antipolo">Antipolo</li>
+                <li data-street="Arenas">Arenas</li>
+                <li data-street="Arevalo">Arevalo</li>
+                <li data-street="Atis">Atis</li>
+                <li data-street="B. Tuazon">B. Tuazon</li>
+                <li data-street="Basilio">Basilio</li>
+                <li data-street="Bataan">Bataan</li>
+                <li data-street="Batanes">Batanes</li>
+                <li data-street="Batanes Ext.">Batanes Ext.</li>
+                <li data-street="Benito">Benito</li>
+                <li data-street="Benny">Benny</li>
+                <li data-street="Beting">Beting</li>
+                <li data-street="Blumentritt">Blumentritt</li>
+                <li data-street="Bohol">Bohol</li>
+                <li data-street="Buenos Aires">Buenos Aires</li>
+                <li data-street="Calabash A">Calabash A</li>
+                <li data-street="Calabash B">Calabash B</li>
+                <li data-street="Calabash Road">Calabash Road</li>
+                <li data-street="Legarda">Legarda Street</li>
+            </ul>
+        </div>
+        
+        <div class="flood-category medium">
+            <h4><span class="risk-dot medium-risk"></span>Medium Flood Risk</h4>
+            <ul class="flood-list">
+                <li data-street="Sta Mesa">Sta Mesa Street</li>
+            </ul>
+        </div>
+        
+        <div class="flood-category low">
+            <h4><span class="risk-dot low-risk"></span>Low Flood Risk</h4>
+            <ul class="flood-list">
+                <li data-street="Abad Santos">Abad Santos Street</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div class="settings-menu" id="settingsMenu">
+        <button id="accountSecurityBtn">
+            <img src="security-icon.png" alt="" width="20" style="margin-right: 10px;">
+            Account and Security
+        </button>
+        <button id="notificationBtn">
+            <img src="notification-icon.png" alt="" width="20" style="margin-right: 10px;">
+            Notification
+        </button>
+        <button id="faqBtn">
+            <img src="faq-icon.png" alt="" width="20" style="margin-right: 10px;">
+            FAQ
+        </button>
+    </div>
+
+    <!-- Emergency Contact Panel -->
+    <div class="emergency-panel" id="emergencyPanel">
+        <h3>Emergency Contact</h3>
+        <div class="emergency-number">0915 881 1986</div>
+        <div class="emergency-buttons">
+            <button class="cancel-emergency" id="cancelEmergency">Cancel</button>
+            <button class="call-now" id="callNow">Call Now</button>
+        </div>
+    </div>
+
+    <!-- Account Security Panel -->
+    <div class="account-security-panel" id="accountSecurityPanel">
+        <h3>Account Information</h3>
+        <div class="user-info">
+            <div>
+                <label>Username:</label>
+                <span id="username">user123</span>
+            </div>
+            <div>
+                <label>Last Name:</label>
+                <span id="lastName">Doe</span>
+            </div>
+            <div>
+                <label>First Name:</label>
+                <span id="firstName">John</span>
+            </div>
+        </div>
+        
+        <div class="change-password">
+            <h4>Change Password</h4>
+            <input type="password" id="currentPassword" placeholder="Current Password">
+            <input type="password" id="newPassword" placeholder="New Password">
+            <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+        </div>
+        
+        <div class="account-buttons">
+            <button class="close-account" id="closeAccountPanel">Close</button>
+            <button class="save-password" id="savePassword">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="div-nav">
+        <button class="abe-button">
+            <img src="3.jpg" alt="ABE button">
+        </button>
+        <button class="emergency-button" id="emergencyButton">
+            <img src="2.avif" alt="Emergency call">
+        </button>
+        <button class="settings-button" id="settingsButton">
+            <img src="4.webp" alt="Settings">
+        </button>
+    </div>
+
+    <!-- Leaflet JS (OpenStreetMap) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([14.5995, 120.9842], 15);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Add a marker (optional)
+        L.marker([14.5995, 120.9842]).addTo(map)
+            .bindPopup('Sample Location')
+            .openPopup();
+
+        // Crime data variables
+        let crimeHeatLayer = null;
+        let crimeMarkersLayer = null;
+        let crimeLegend = null;
+        
+        // Sample crime data (replace with your actual data)
+        const crimeData = [
+            // High crime areas (red)
+            {lat: 14.5995, lng: 120.9842, intensity: 0.9, type: "Robbery", date: "2023-05-15"},
+            {lat: 14.6005, lng: 120.9832, intensity: 0.8, type: "Assault", date: "2023-05-10"},
+            {lat: 14.5985, lng: 120.9852, intensity: 0.85, type: "Burglary", date: "2023-05-05"},
+            
+            // Moderate crime areas (orange)
+            {lat: 14.6015, lng: 120.9822, intensity: 0.6, type: "Theft", date: "2023-04-28"},
+            {lat: 14.5975, lng: 120.9862, intensity: 0.5, type: "Vandalism", date: "2023-04-20"},
+            {lat: 14.6025, lng: 120.9812, intensity: 0.55, type: "Fraud", date: "2023-04-15"}
+        ];
+        
+        // Flood-prone streets data (coordinates are approximate)
+        const floodStreets = {
+            "Legarda": [
+                [14.6030, 120.9920],
+                [14.6025, 120.9915],
+                [14.6020, 120.9910],
+                [14.6015, 120.9905]
+            ],
+            "Sta Mesa": [
+                [14.6050, 120.9950],
+                [14.6045, 120.9945],
+                [14.6040, 120.9940],
+                [14.6035, 120.9935]
+            ],
+            "Abad Santos": [
+                [14.6070, 120.9980],
+                [14.6065, 120.9975],
+                [14.6060, 120.9970],
+                [14.6055, 120.9965]
+            ],
+            // Add coordinates for all the new streets you listed
+            "3 Marias": [
+                [14.6080, 120.9990],
+                [14.6075, 120.9985]
+            ],
+            "Alcantara": [
+                [14.6090, 121.0000],
+                [14.6085, 120.9995]
+            ]
+            // Add coordinates for all other streets similarly
+        };
+        
+        let floodPolygons = {};
+        
+        // Search Panel Functionality
+        const searchButton = document.getElementById('searchButton');
+        const searchIcon = document.getElementById('searchIcon');
+        const searchPanel = document.getElementById('searchPanel');
+        const currentLocation = document.getElementById('currentLocation');
+        const destination = document.getElementById('destination');
+        const searchSubmit = document.getElementById('searchSubmit');
+        const crimeRateBtn = document.getElementById('crimeRateBtn');
+        const floodBtn = document.getElementById('floodBtn');
+        
+        // Flood Panel Functionality
+        const floodPanel = document.getElementById('floodPanel');
+        const closeFloodPanel = document.getElementById('closeFloodPanel');
+        
+        // Settings Menu Functionality
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const accountSecurityBtn = document.getElementById('accountSecurityBtn');
+        const notificationBtn = document.getElementById('notificationBtn');
+        const faqBtn = document.getElementById('faqBtn');
+        
+        // Emergency Panel Functionality
+        const emergencyButton = document.getElementById('emergencyButton');
+        const emergencyPanel = document.getElementById('emergencyPanel');
+        const callNow = document.getElementById('callNow');
+        const cancelEmergency = document.getElementById('cancelEmergency');
+        
+        // Account Security Panel Elements
+        const accountSecurityPanel = document.getElementById('accountSecurityPanel');
+        const closeAccountPanel = document.getElementById('closeAccountPanel');
+        const savePasswordBtn = document.getElementById('savePassword');
+        const currentPassword = document.getElementById('currentPassword');
+        const newPassword = document.getElementById('newPassword');
+        const confirmPassword = document.getElementById('confirmPassword');
+        
+        // Function to show crime data
+        function showCrimeData() {
+            // Remove existing crime layers if they exist
+            if (crimeHeatLayer) {
+                map.removeLayer(crimeHeatLayer);
+            }
+            if (crimeMarkersLayer) {
+                map.removeLayer(crimeMarkersLayer);
+            }
+            
+            // Prepare heatmap data
+            const heatData = crimeData.map(crime => [crime.lat, crime.lng, crime.intensity]);
+            
+            // Create heatmap layer
+            crimeHeatLayer = L.heatLayer(heatData, {
+                radius: 25,
+                blur: 15,
+                maxZoom: 17,
+                gradient: {
+                    0.4: 'blue',
+                    0.6: 'lime',
+                    0.7: 'yellow',
+                    0.8: 'orange',
+                    0.9: 'red'
+                }
+            }).addTo(map);
+            
+            // Create markers for each crime incident
+            crimeMarkersLayer = L.layerGroup();
+            
+            crimeData.forEach(crime => {
+                const color = crime.intensity >= 0.8 ? 'red' : 
+                             crime.intensity >= 0.6 ? 'orange' : 'yellow';
+                
+                const marker = L.circleMarker([crime.lat, crime.lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#000',
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).bindPopup(`
+                    <b>${crime.type}</b><br>
+                    Date: ${crime.date}<br>
+                    Severity: ${crime.intensity >= 0.8 ? 'High' : crime.intensity >= 0.6 ? 'Moderate' : 'Low'}
+                `);
+                
+                crimeMarkersLayer.addLayer(marker);
+            });
+            
+            crimeMarkersLayer.addTo(map);
+            
+            // Add legend
+            if (crimeLegend) {
+                crimeLegend.remove();
+            }
+            
+            crimeLegend = L.control({position: 'bottomright'});
+            
+            crimeLegend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                const grades = [0.6, 0.8];
+                const colors = ['orange', 'red'];
+                const labels = ['Moderate Crime', 'High Crime'];
+                
+                div.innerHTML = '<h4>Crime Severity</h4>';
+                
+                for (let i = 0; i < grades.length; i++) {
+                    div.innerHTML +=
+                        '<i style="background:' + colors[i] + '"></i> ' +
+                        labels[i] + '<br>';
+                }
+                
+                return div;
+            };
+            
+            crimeLegend.addTo(map);
+            
+            // Zoom to show all crime data
+            const bounds = L.latLngBounds(crimeData.map(crime => [crime.lat, crime.lng]));
+            map.fitBounds(bounds.pad(0.1));
+        }
+        
+        // Function to hide crime data
+        function hideCrimeData() {
+            if (crimeHeatLayer) {
+                map.removeLayer(crimeHeatLayer);
+                crimeHeatLayer = null;
+            }
+            if (crimeMarkersLayer) {
+                map.removeLayer(crimeMarkersLayer);
+                crimeMarkersLayer = null;
+            }
+            if (crimeLegend) {
+                crimeLegend.remove();
+                crimeLegend = null;
+            }
+        }
+        
+        // Function to show flood data for a specific street
+        function showFloodStreet(streetName) {
+            // Clear any existing flood polygons
+            hideAllFloodStreets();
+            
+            if (floodStreets[streetName]) {
+                // Determine color based on street
+                let color, weight;
+                
+                // Check which category the street belongs to
+                if (document.querySelector(`.flood-category.high .flood-list li[data-street="${streetName}"]`)) {
+                    color = '#d9534f'; // Red for high risk
+                    weight = 8;
+                } else if (document.querySelector(`.flood-category.medium .flood-list li[data-street="${streetName}"]`)) {
+                    color = '#f0ad4e'; // Orange for medium risk
+                    weight = 6;
+                } else {
+                    color = '#5cb85c'; // Green for low risk
+                    weight = 4;
+                }
+                
+                floodPolygons[streetName] = L.polyline(floodStreets[streetName], {
+                    color: color,
+                    weight: weight,
+                    opacity: 0.8,
+                    fillOpacity: 0.5
+                }).addTo(map).bindPopup(`<b>${streetName} Street</b><br>Flood risk: ${
+                    color === '#d9534f' ? "High" : 
+                    color === '#f0ad4e' ? "Medium" : "Low"
+                }`);
+                
+                // Zoom to the street
+                const bounds = L.latLngBounds(floodStreets[streetName]);
+                map.fitBounds(bounds.pad(0.1));
+            }
+        }
+        
+        // Function to hide all flood streets
+        function hideAllFloodStreets() {
+            for (const street in floodPolygons) {
+                if (floodPolygons[street]) {
+                    map.removeLayer(floodPolygons[street]);
+                }
+            }
+            floodPolygons = {};
+        }
+        
+        // Toggle search panel visibility when clicking the search icon
+        searchIcon.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event from bubbling to the button
+            if (searchPanel.style.display === 'block') {
+                searchPanel.style.display = 'none';
+            } else {
+                searchPanel.style.display = 'block';
+                // Close other panels if open
+                settingsMenu.style.display = 'none';
+                emergencyPanel.style.display = 'none';
+                floodPanel.style.display = 'none';
+                accountSecurityPanel.style.display = 'none';
+                // Clear any existing values
+                currentLocation.value = '';
+                destination.value = '';
+            }
+        });
+        
+        // Also make the button clickable (optional)
+        searchButton.addEventListener('click', function() {
+            if (searchPanel.style.display === 'block') {
+                searchPanel.style.display = 'none';
+            } else {
+                searchPanel.style.display = 'block';
+                // Close other panels if open
+                settingsMenu.style.display = 'none';
+                emergencyPanel.style.display = 'none';
+                floodPanel.style.display = 'none';
+                accountSecurityPanel.style.display = 'none';
+                // Clear any existing values
+                currentLocation.value = '';
+                destination.value = '';
+            }
+        });
+        
+        // Crime Rate button functionality
+        let crimeDataVisible = false;
+        crimeRateBtn.addEventListener('click', function() {
+            if (crimeDataVisible) {
+                hideCrimeData();
+                crimeDataVisible = false;
+            } else {
+                showCrimeData();
+                crimeDataVisible = true;
+            }
+        });
+        
+        // Flood button functionality
+        floodBtn.addEventListener('click', function() {
+            if (floodPanel.style.display === 'block') {
+                floodPanel.style.display = 'none';
+                hideAllFloodStreets();
+            } else {
+                floodPanel.style.display = 'block';
+                // Close other panels if open
+                searchPanel.style.display = 'none';
+                settingsMenu.style.display = 'none';
+                emergencyPanel.style.display = 'none';
+                accountSecurityPanel.style.display = 'none';
+            }
+        });
+        
+        // Close flood panel
+        closeFloodPanel.addEventListener('click', function() {
+            floodPanel.style.display = 'none';
+            hideAllFloodStreets();
+        });
+        
+        // Handle clicks on flood street list items
+        document.querySelectorAll('.flood-list li').forEach(item => {
+            item.addEventListener('click', function() {
+                const streetName = this.getAttribute('data-street');
+                showFloodStreet(streetName);
+            });
+        });
+        
+        // Toggle settings menu visibility
+        settingsButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (settingsMenu.style.display === 'block') {
+                settingsMenu.style.display = 'none';
+            } else {
+                settingsMenu.style.display = 'block';
+                // Close other panels if open
+                searchPanel.style.display = 'none';
+                emergencyPanel.style.display = 'none';
+                floodPanel.style.display = 'none';
+                accountSecurityPanel.style.display = 'none';
+            }
+        });
+        
+        // Toggle emergency panel visibility
+        emergencyButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (emergencyPanel.style.display === 'block') {
+                emergencyPanel.style.display = 'none';
+            } else {
+                emergencyPanel.style.display = 'block';
+                // Close other panels if open
+                searchPanel.style.display = 'none';
+                settingsMenu.style.display = 'none';
+                floodPanel.style.display = 'none';
+                accountSecurityPanel.style.display = 'none';
+            }
+        });
+        
+        // Call Now button functionality
+        callNow.addEventListener('click', function() {
+            // In a real app, this would initiate a phone call
+            alert('Calling emergency number: 0915 881 1986');
+            // For mobile devices, you could use: window.location.href = 'tel:09158811986';
+            emergencyPanel.style.display = 'none';
+        });
+        
+        // Cancel button functionality
+        cancelEmergency.addEventListener('click', function() {
+            emergencyPanel.style.display = 'none';
+        });
+        
+        // Settings menu buttons functionality
+        accountSecurityBtn.addEventListener('click', function() {
+            // Close other panels
+            settingsMenu.style.display = 'none';
+            searchPanel.style.display = 'none';
+            emergencyPanel.style.display = 'none';
+            floodPanel.style.display = 'none';
+            
+            // Show account security panel
+            accountSecurityPanel.style.display = 'block';
+            
+            // In a real app, you would fetch this data from your backend
+            // For demo purposes, we're using hardcoded values
+            document.getElementById('username').textContent = 'user123';
+            document.getElementById('lastName').textContent = 'Doe';
+            document.getElementById('firstName').textContent = 'John';
+        });
+        
+        notificationBtn.addEventListener('click', function() {
+            alert('Notification settings clicked');
+            settingsMenu.style.display = 'none';
+        });
+        
+        faqBtn.addEventListener('click', function() {
+            alert('FAQ clicked');
+            settingsMenu.style.display = 'none';
+        });
+        
+        // Close account panel
+        closeAccountPanel.addEventListener('click', function() {
+            accountSecurityPanel.style.display = 'none';
+            // Clear password fields
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+        });
+        
+        // Save password functionality
+        savePasswordBtn.addEventListener('click', function() {
+            const currentPwd = currentPassword.value;
+            const newPwd = newPassword.value;
+            const confirmPwd = confirmPassword.value;
+            
+            // Basic validation
+            if (!currentPwd || !newPwd || !confirmPwd) {
+                alert('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPwd !== confirmPwd) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            if (newPwd.length < 6) {
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            // In a real app, you would send this to your backend for verification and update
+            alert('Password change request sent!\n(Note: This is a demo. In a real app, this would communicate with your backend)');
+            
+            // Clear fields
+            currentPassword.value = '';
+            newPassword.value = '';
+            confirmPassword.value = '';
+            
+            // Close panel
+            accountSecurityPanel.style.display = 'none';
+        });
+        
+        // Handle search submission
+        searchSubmit.addEventListener('click', function() {
+            const dest = destination.value;
+            if (dest) {
+                alert(`Searching route to: ${dest}`);
+                // Here you would typically implement routing logic
+                // This would involve geocoding the destination and showing a route
+            } else {
+                alert('Please enter a destination');
+            }
+        });
+        
+        // Close panels when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!searchPanel.contains(event.target) && event.target !== searchButton && event.target !== searchIcon) {
+                searchPanel.style.display = 'none';
+            }
+            if (!settingsMenu.contains(event.target) && event.target !== settingsButton) {
+                settingsMenu.style.display = 'none';
+            }
+            if (!emergencyPanel.contains(event.target) && event.target !== emergencyButton) {
+                emergencyPanel.style.display = 'none';
+            }
+            if (!floodPanel.contains(event.target) && event.target !== floodBtn) {
+                floodPanel.style.display = 'none';
+            }
+            if (!accountSecurityPanel.contains(event.target) && event.target !== accountSecurityBtn) {
+                accountSecurityPanel.style.display = 'none';
+                // Clear password fields when closing
+                currentPassword.value = '';
+                newPassword.value = '';
+                confirmPassword.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
